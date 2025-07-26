@@ -4,7 +4,7 @@ import { ArrowDown, Download, Github, Linkedin, Code } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HeroScene } from '@/components/3D/HeroScene';
 import { PageTransition } from '@/components/PageTransition';
-
+import resumePdf from '@/assets/Praveen-ns-resume.pdf'
 export const Home: React.FC = () => {
   return (
     <PageTransition>
@@ -70,7 +70,7 @@ export const Home: React.FC = () => {
               transition={{ delay: 0.8 }}
               className="flex flex-wrap gap-4"
             >
-              <a href="/assets/Praveen-ns-resume.pdf" download={true}>
+              <a href={resumePdf} download={true}>
               <Button 
                 size="lg" 
                 className="bg-primary hover:bg-primary/90 text-primary-foreground hover-glow"

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { User, Award, Calendar, Target } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageTransition } from '@/components/PageTransition';
-
+import profileImage from '@/assets/profile.jpeg';
 export const About: React.FC = () => {
   const stats = [
     { icon: Calendar, label: "Years Experience", value: "2+" },
@@ -42,7 +42,7 @@ export const About: React.FC = () => {
                 <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                   {/* <User size={120}  className="text-primary" /> */}
                   <img
-                    src="/src/assets/profile.jpeg"
+                    src={profileImage}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
