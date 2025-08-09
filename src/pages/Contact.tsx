@@ -8,12 +8,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { PageTransition } from '@/components/PageTransition';
 import { useToast } from '@/hooks/use-toast';
+import emailjs from '@emailjs/browser';
 
 interface FormData {
   name: string;
   email: string;
   subject: string;
   message: string;
+  phone: number;
+  address: string
 }
 
 interface FormErrors {
@@ -21,6 +24,8 @@ interface FormErrors {
   email?: string;
   subject?: string;
   message?: string;
+  phone?: number;
+  address?: string
 }
 
 export const Contact: React.FC = () => {
@@ -28,23 +33,25 @@ export const Contact: React.FC = () => {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
+    phone: null,
+    address: ''
   });
-  
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     // Name validation
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     } else if (formData.name.trim().length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
     }
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
@@ -52,21 +59,21 @@ export const Contact: React.FC = () => {
     } else if (!emailRegex.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    
+
     // Subject validation
     if (!formData.subject.trim()) {
       newErrors.subject = 'Subject is required';
     } else if (formData.subject.trim().length < 3) {
       newErrors.subject = 'Subject must be at least 3 characters';
     }
-    
+
     // Message validation
     if (!formData.message.trim()) {
       newErrors.message = 'Message is required';
     } else if (formData.message.trim().length < 10) {
       newErrors.message = 'Message must be at least 10 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -74,7 +81,7 @@ export const Contact: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
@@ -83,7 +90,7 @@ export const Contact: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast({
         title: "Validation Error",
@@ -92,24 +99,50 @@ export const Contact: React.FC = () => {
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      // Simulate form submission (replace with actual EmailJS integration)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Message Sent!",
-        description: "Thank you for your message. I'll get back to you soon!",
-      });
-      
-      // Reset form
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      const googleFormBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdzvrJdLGDSy0_CDAlg7Ncbtf4QbA1YKBpUkUB6jtLgnC65Mg/viewform?pli=1";
+
+      const prefilledUrl = `${googleFormBaseUrl}?entry.2005620554=${encodeURIComponent(formData.name)}&entry.1045781291=${encodeURIComponent(formData.email)}&entry.1065046570=${encodeURIComponent(formData.address)}&entry.1166974658=${encodeURIComponent(formData.phone)}&entry.1210984263=${encodeURIComponent(formData.subject)}&entry.839337160=${encodeURIComponent(formData.message)}`;
+      window.location.href = prefilledUrl;
+
+
+      // Send email using EmailJS
+      const result = await emailjs.send(
+        'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
+        'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          to_name: 'Your Name', // Replace with your name
+          reply_to: formData.email,
+        },
+        'YOUR_PUBLIC_KEY' // Replace with your EmailJS public key
+      );
+
+      if (result.status === 200) {
+        toast({
+          title: "Success!",
+          description: "Your message has been sent successfully!",
+        });
+        // Clear form
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+          phone: null,
+          address: ''
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: "Failed to send message. Please try again later.",
         variant: "destructive"
       });
     } finally {
@@ -173,8 +206,8 @@ export const Contact: React.FC = () => {
               <div>
                 <h2 className="text-3xl font-bold mb-6">Let's Talk</h2>
                 <p className="text-lg text-muted-foreground mb-8">
-                  I'm always interested in new opportunities and exciting projects. 
-                  Whether you have a question or just want to say hi, I'll do my best 
+                  I'm always interested in new opportunities and exciting projects.
+                  Whether you have a question or just want to say hi, I'll do my best
                   to get back to you!
                 </p>
               </div>
@@ -196,7 +229,7 @@ export const Contact: React.FC = () => {
                           </div>
                           <div>
                             <h3 className="font-semibold">{info.title}</h3>
-                            <a 
+                            <a
                               href={info.href}
                               className="text-muted-foreground hover:text-primary transition-colors"
                             >
@@ -265,7 +298,7 @@ export const Contact: React.FC = () => {
                           <p className="text-sm text-destructive">{errors.name}</p>
                         )}
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="email">Email *</Label>
                         <Input
@@ -282,7 +315,34 @@ export const Contact: React.FC = () => {
                         )}
                       </div>
                     </div>
-
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone *</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className={`glass ${errors.phone ? 'border-destructive' : ''}`}
+                        placeholder="What's this about?"
+                      />
+                      {errors.phone && (
+                        <p className="text-sm text-destructive">{errors.phone}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Address *</Label>
+                      <Input
+                        id="address"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        className={`glass ${errors.address ? 'border-destructive' : ''}`}
+                        placeholder="What's this about?"
+                      />
+                      {errors.address && (
+                        <p className="text-sm text-destructive">{errors.address}</p>
+                      )}
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="subject">Subject *</Label>
                       <Input
